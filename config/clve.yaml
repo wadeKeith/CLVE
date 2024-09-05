@@ -1,0 +1,7 @@
+policy:
+  rgbd_encoder_cfg:
+    rgbd_network_backbone: "DFormer_Base"
+    num_heads: 8
+    out_channels: 64
+    num_layers_clve_attentive: 12
+    dropout: 0.1
