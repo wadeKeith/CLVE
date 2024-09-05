@@ -1,2 +1,6 @@
 *.npy
 *.tar
+*.pyc
+*.log
+*.json
+*.wandb

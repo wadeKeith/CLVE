@@ -6,7 +6,7 @@ import torch
 from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
 from itertools import combinations
-from diffusion_policy_3d.model.common.normalizer import LinearNormalizer
+from utils.normalizer import LinearNormalizer
 
 class CLVEImageData(Dataset):
   
@@ -63,7 +63,7 @@ def get_dataset_distributed(world_size, rank, batch_size, **kwargs):
         num_workers=4,
     )
 
-    return dataloader,dataset
+    return dataloader,dataset, dataset.get_normalizer()
 
 
 

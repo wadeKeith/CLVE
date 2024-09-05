@@ -1,7 +1,15 @@
-policy:
-  rgbd_encoder_cfg:
-    rgbd_network_backbone: "DFormer_Base"
-    num_heads: 8
-    out_channels: 64
-    num_layers_clve_attentive: 12
-    dropout: 0.1
+seed: 429
+accumulation_steps: 1
+temperature: 0.5
+learning_rate: 1.0e-05
+batch_size: 32
+epochs: 500
+use_ema: True
+grad_clip: 1
+save_interval: 10000
+rgbd_encoder_cfg:
+  rgbd_network_backbone: "DFormer_Base"
+  num_heads: 8
+  out_channels: 64
+  num_layers_clve_attentive: 12
+  dropout: 0.1

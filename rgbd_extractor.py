@@ -109,7 +109,9 @@ class CLVE(nn.Module):
 class CLVEModel(nn.Module):
     def __init__(self, cfg):
         super().__init__()
-        self.image_encoder = CLVE(cfg['rgbd_encoder_cfg'])
+        self.image_encoder = CLVE(cfg)
+        self.epoch = 0
+        self.step = 0
 
     def load_checkpoint(self, path):
         self.load_state_dict(torch.load(path))
