@@ -15,11 +15,12 @@ import torch.multiprocessing as mp
 import torch.distributed as dist
 from torch_ema import ExponentialMovingAverage
 from torch.amp import GradScaler
+from utils.lr_scheduler import get_scheduler
 
 global_address = '/home/zxr/Documents/Github/CLVE'
 DDP_FIND_UNUSED_PARAM = True
 os.environ['MASTER_ADDR'] = 'localhost'
-os.environ['MASTER_PORT'] = '12345' 
+os.environ['MASTER_PORT'] = '2950' 
 
 
 
@@ -50,7 +51,6 @@ def train(rank, world_size, cfg):
     torch.cuda.empty_cache()
 
     setup(rank, world_size, 12345, 'output_dis')
-    # torch.manual_seed(0)
     device = torch.device(rank)
     # set seed
     torch.manual_seed(cfg.seed)
@@ -71,31 +71,40 @@ def train(rank, world_size, cfg):
     )
     model = model_ddp.module
     optimizer = torch.optim.AdamW(model_ddp.parameters(), lr=cfg.learning_rate)
+    
     model.device = device
 
-    dataset_ddp, dataset, normalizer = get_dataset_distributed(world_size,rank,cfg.batch_size)
+    dataset_ddp, normalizer = get_dataset_distributed(world_size,rank,cfg.batch_size)
 
-
+    lr_scheduler = get_scheduler(cfg.lr_scheduler_name,
+                                 optimizer=optimizer,
+                                 num_warmup_steps=cfg.lr_warmup_steps,
+                                 num_training_steps=(len(dataset_ddp)*cfg.epochs),
+                                 last_epoch = model.step-1)
+    
     total_progress_bar = tqdm(total = cfg.epochs, desc = "Total num of epochs", dynamic_ncols=True)
     total_progress_bar.update(model.epoch)
-    interior_step_bar = tqdm(dynamic_ncols=True)
-    interior_step_bar.reset(total=(len(dataset)))
-    interior_step_bar.set_description(f"Progress of one epoch")
+    interior_step_bar = tqdm(total=len(dataset_ddp), desc="Progress of one epoch" , dynamic_ncols=True)
     interior_step_bar.update((model.step))
 
+    
+
     if rank ==0:
+        
+        
         os.environ['WANDB_START_METHOD'] = 'thread'
         wandb_run = wandb.init(
             dir=str(os.path.join(global_address,'wandb_log')),
             # group = 'CLVE',
-            mode =  'offline',
+            mode =  cfg.wandb_mode,
             name = 'clve',
             project = 'CLVE',
             resume = True,
             id = wandb.util.generate_id(),
         )
     for _ in range(cfg.epochs):
-        total_progress_bar.update(1)
+        if rank ==0:
+            total_progress_bar.update(1)
         
         step_log = dict()
         for i, (rgbd_a, rgbd_b) in enumerate(dataset_ddp):
@@ -113,6 +122,7 @@ def train(rank, world_size, cfg):
             torch.nn.utils.clip_grad_norm_(model_ddp.parameters(), cfg.grad_clip)
             scaler.step(optimizer)
             scaler.update()
+            
             if cfg.use_ema == True:
                 ema.update(model_ddp.parameters())
             
@@ -124,7 +134,7 @@ def train(rank, world_size, cfg):
                     'Image_b_Accuracy':img_b_acc.item(),
                     'global_step': model.step,
                     'epoch': model.epoch,
-                    'lr': optimizer.param_groups[0]['lr']
+                    'lr': lr_scheduler.get_last_lr()[0]
                 }
                 wandb_run.log(step_log, step=model.step)
                 if model.step % cfg.save_interval == 0:
@@ -141,8 +151,24 @@ def train(rank, world_size, cfg):
                                 'optimizer.pth': optimizer.state_dict(),
                                 'normalizer.pth': normalizer.state_dict(),
                             }
-                    torch_save_atomic(model_dict, os.path.join(global_address,"models", f"clve_last_ckpt.pt"))
+                    torch_save_atomic(model_dict, os.path.join(global_address,"models", f"clve_last_step_ckpt.pt"))
+            lr_scheduler.step()
             model.step += 1
+        if rank == 0:
+            if cfg.use_ema == True:
+                model_dict = {
+                        'ema_CLVE.pth': ema.state_dict(),
+                        'CLVE.pth': model_ddp.module,
+                        'optimizer.pth': optimizer.state_dict(),
+                        'normalizer.pth': normalizer.state_dict(),
+                    }
+            else:
+                model_dict = {
+                        'CLVE.pth': model_ddp.module,
+                        'optimizer.pth': optimizer.state_dict(),
+                        'normalizer.pth': normalizer.state_dict(),
+                    }
+            torch_save_atomic(model_dict, os.path.join(global_address,"models", f"clve_last_epoch_ckpt.pt"))
         model.epoch += 1
 
 
@@ -158,7 +184,7 @@ def main():
             config_parser.add_argument(f"--{key}", type=type(value), default=value)
         
     args = config_parser.parse_args()
-    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+    os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3,4,5,6'
     num_gpus = len(os.environ['CUDA_VISIBLE_DEVICES'].split(','))
     assert num_gpus > 0, 'No GPUs found'
 

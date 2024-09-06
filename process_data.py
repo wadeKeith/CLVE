@@ -44,7 +44,20 @@ class1 = np.concatenate(class1_ls,axis=0)
 class2 = np.concatenate(class2_ls,axis=0)
 class3 = np.concatenate(class3_ls,axis=0)
 
-np.save(os.path.join('/home/zxr/Documents/Github/DP_ur5e_open_door/CLVE','processed_data/class0'),class0)
-np.save(os.path.join('/home/zxr/Documents/Github/DP_ur5e_open_door/CLVE','processed_data/class1'),class1)
-np.save(os.path.join('/home/zxr/Documents/Github/DP_ur5e_open_door/CLVE','processed_data/class2'),class2)
-np.save(os.path.join('/home/zxr/Documents/Github/DP_ur5e_open_door/CLVE','processed_data/class3'),class3)
+# np.save(os.path.join('/home/zxr/Documents/Github/DP_ur5e_open_door/CLVE','processed_data/class0'),class0)
+# np.save(os.path.join('/home/zxr/Documents/Github/DP_ur5e_open_door/CLVE','processed_data/class1'),class1)
+# np.save(os.path.join('/home/zxr/Documents/Github/DP_ur5e_open_door/CLVE','processed_data/class2'),class2)
+# np.save(os.path.join('/home/zxr/Documents/Github/DP_ur5e_open_door/CLVE','processed_data/class3'),class3)
+
+all_data = np.concatenate([class0, class1, class2, class3],axis=0)
+
+for i in range(len(all_data)):
+    img = all_data[i][:,:,:-1]
+    depth = all_data[i][:,:,-1]
+    Image.fromarray(cv2.cvtColor(img,cv2.COLOR_BGR2RGB)).save(os.path.join('/home/zxr/Documents/Github/CLVE/processed_data/img','%d.png' %i))
+    Image.fromarray(depth, 'L').save(os.path.join('/home/zxr/Documents/Github/CLVE/processed_data/depth','%d.png' %i))
+
+    print('a')
+
+
+
