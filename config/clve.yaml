@@ -1,12 +1,15 @@
 seed: 429
+wandb_mode: 'online'
 accumulation_steps: 1
 temperature: 0.5
 learning_rate: 1.0e-05
-batch_size: 32
-epochs: 500
+batch_size: 128
+epochs: 50
 use_ema: True
 grad_clip: 1
-save_interval: 10000
+save_interval: 100
+lr_scheduler_name: cosine
+lr_warmup_steps: 500
 rgbd_encoder_cfg:
   rgbd_network_backbone: "DFormer_Base"
   num_heads: 8
