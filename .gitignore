@@ -5,3 +5,5 @@
 *.json
 *.wandb
 *.png
+*.pth
+.DS_Store
