@@ -6,3 +6,4 @@
 *.wandb
 *.png
 *.pth
+.DS_Store
