@@ -11,15 +11,19 @@ from utils.normalizer import LinearNormalizer
 class CLVEImageData(Dataset):
   
 
-    def __init__(self, global_path = '/home/zxr/Documents/Github/CLVE/processed_data'):
+    def __init__(self, global_path = '/home/zxr/Documents/Github/CLVE/processed_data', dataset_len = 50000, is_eval= False, flag='norm'):
         self.global_path = global_path
         class0 = np.load(os.path.join(self.global_path,'class0.npy'),allow_pickle=True)
         class1 = np.load(os.path.join(self.global_path,'class1.npy'),allow_pickle=True)
         class2 = np.load(os.path.join(self.global_path,'class2.npy'),allow_pickle=True)
         class3 = np.load(os.path.join(self.global_path,'class3.npy'),allow_pickle=True)
-        self.idx = self.gen_index([class0.shape[0], class1.shape[0], class2.shape[0], class3.shape[0]])
+        idx_all = self.gen_index([class0.shape[0], class1.shape[0], class2.shape[0], class3.shape[0]], flag)
         # self.samples = np.concatenate([class0.transpose([0,3,1,2]), class1.transpose([0,3,1,2]), class2.transpose([0,3,1,2]), class3.transpose([0,3,1,2])], axis=0).astype(np.float32)
-        np.random.shuffle(self.idx)
+        np.random.shuffle(idx_all)
+        if is_eval:
+            self.idx = idx_all[:dataset_len]
+        else:
+            self.idx = idx_all
         self.length = len(self.idx)
 
     def __len__(self):
@@ -35,13 +39,27 @@ class CLVEImageData(Dataset):
         rgbd_a, rgbd_b = np.concatenate([img_a, depth_a], axis=-1).transpose([2,0,1]).astype(np.float32), np.concatenate([img_b, depth_b], axis=-1).transpose([2,0,1]).astype(np.float32)
         return rgbd_a, rgbd_b 
     
-    def gen_index(self, idx_len_ls):
-        start_idx = 0
-        total_len = sum(idx_len_ls)
-        idx_ls = []
-        for idx_len in idx_len_ls:
-            idx_ls.append(np.array(list(combinations(range(start_idx,start_idx+idx_len),2))))
-            start_idx = start_idx+idx_len
+    def gen_index(self, idx_len_ls, flag = 'norm'):
+        if flag == 'norm':
+            start_idx = 0
+            # total_len = sum(idx_len_ls)
+            idx_ls = []
+            for idx_len in idx_len_ls:
+                idx_ls.append(np.array(list(combinations(range(start_idx,start_idx+idx_len),2))))
+                start_idx = start_idx+idx_len
+        elif flag== 'diff':
+            start_idx = 0
+            class_range = []
+            result_pair = []
+            for i in idx_len_ls:
+                class_range.append([start_idx,start_idx+i])
+                start_idx += i
+            class_idx = list(combinations(range(0,len(idx_len_ls)),2))
+            for class_pair in class_idx:
+                class_x, class_y = class_pair[0], class_pair[1]
+                for x in range(class_range[class_x][0],class_range[class_x][1]):
+                    for y in range(class_range[class_y][0],class_range[class_y][1]):
+                        result_pair.append(np.array([x,y]).reshape(1,-1))
 
         return np.concatenate(idx_ls,axis=0)
 

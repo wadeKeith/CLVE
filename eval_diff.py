@@ -6,7 +6,7 @@ import random
 from lightning.fabric import Fabric
 from torch import optim
 from torch.utils.data import DataLoader
-from CLVE_dataset import CLVEImageData, get_dataset_distributed
+from CLVE_dataset import CLVEImageData
 import os
 from torch_ema import ExponentialMovingAverage
 from utils.normalizer import LinearNormalizer
@@ -69,7 +69,7 @@ def eval(rank, world_size, cfg):
         find_unused_parameters=DDP_FIND_UNUSED_PARAM
     )
     model_ddp.eval()
-    dataset = CLVEImageData(is_eval=True, dataset_len=100000)
+    dataset = CLVEImageData(is_eval=True,dataset_len=100000, flag='diff')
     sampler = torch.utils.data.distributed.DistributedSampler(
         dataset,
         num_replicas=world_size,
@@ -120,7 +120,7 @@ def main():
             config_parser.add_argument(f"--{key}", type=type(value), default=value)
         
     args = config_parser.parse_args()
-    os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3'
+    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
     num_gpus = len(os.environ['CUDA_VISIBLE_DEVICES'].split(','))
     assert num_gpus > 0, 'No GPUs found'
 
