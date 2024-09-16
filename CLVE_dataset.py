@@ -11,7 +11,7 @@ from utils.normalizer import LinearNormalizer
 class CLVEImageData(Dataset):
   
 
-    def __init__(self, global_path = '/home/zxr/Documents/Github/DP_ur5e_open_door/CLVE/processed_data'):
+    def __init__(self, global_path = '/home/zxr/Documents/Github/CLVE/processed_data'):
         self.global_path = global_path
         class0 = np.load(os.path.join(self.global_path,'class0.npy'),allow_pickle=True)
         class1 = np.load(os.path.join(self.global_path,'class1.npy'),allow_pickle=True)

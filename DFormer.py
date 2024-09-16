@@ -8,10 +8,10 @@ from timm.models.registry import register_model
 from timm.models.vision_transformer import _cfg
 import math
 
-model_checkpoint_type = {'DFormer_Large':'/home/zxr/Documents/Github/DP_ur5e_open_door/CLVE/checkpoint/DFormer_Large.pth.tar',
-                         'DFormer_Base': '/home/zxr/Documents/Github/DP_ur5e_open_door/CLVE/checkpoint/DFormer_Base.pth.tar',
-                         'DFormer_Small': '/home/zxr/Documents/Github/DP_ur5e_open_door/CLVE/checkpoint/DFormer_Small.pth.tar',
-                         'DFormer_Tiny': '/home/zxr/Documents/Github/DP_ur5e_open_door/CLVE/checkpoint/DFormer_Tiny.pth.tar',}
+model_checkpoint_type = {'DFormer_Large':'/home/zxr/Documents/Github/CLVE/checkpoint/DFormer_Large.pth.tar',
+                         'DFormer_Base': '/home/zxr/Documents/Github/CLVE/checkpoint/DFormer_Base.pth.tar',
+                         'DFormer_Small': '/home/zxr/Documents/Github/CLVE/checkpoint/DFormer_Small.pth.tar',
+                         'DFormer_Tiny': '/home/zxr/Documents/Github/CLVE/checkpoint/DFormer_Tiny.pth.tar',}
 
 class MLP(nn.Module):
     def __init__(self, dim, mlp_ratio=4):

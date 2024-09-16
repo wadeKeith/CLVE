@@ -16,7 +16,7 @@ import torch.distributed as dist
 from torch_ema import ExponentialMovingAverage
 from torch.amp import GradScaler
 
-global_address = '/home/zxr/Documents/Github/DP_ur5e_open_door/CLVE'
+global_address = '/home/zxr/Documents/Github/CLVE'
 
 
 
